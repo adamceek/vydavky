@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Výdavky">
+<meta name="theme-color" content="#0d0d0d">
+<title>Výdavky</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#0d0d0d; --surface:#161616; --surface2:#1e1e1e; --border:#2a2a2a; --accent:#c8f538; --text:#f0f0f0; --text-muted:#555; --text-mid:#999; --danger:#ff4a4a; --warning:#f5a623; --income:#45d483; --radius:14px; }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100dvh}
+header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:16px 20px 12px}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}.app-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;letter-spacing:-.5px;color:var(--accent)}.header-date{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}.header-balance{display:flex;gap:20px}.balance-item{display:flex;flex-direction:column;gap:2px}.balance-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}.balance-value{font-family:'Syne',sans-serif;font-weight:700;font-size:18px}.balance-value.accent{color:var(--accent)}.balance-value.income{color:var(--income)}
+.status-badge{display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border:1px solid var(--border);border-radius:100px;color:var(--text-muted);cursor:pointer}.status-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted)}.status-dot.ok{background:var(--accent)}.status-dot.loading{background:var(--warning);animation:pulse .8s infinite}.status-dot.error{background:var(--danger)}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:108px;z-index:99}.tab{flex:1;padding:12px 8px;font-family:'Syne',sans-serif;font-weight:600;font-size:13px;color:var(--text-muted);background:none;border:none;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:color .2s;position:relative}.tab.active{color:var(--accent)}.tab.active::after{content:'';position:absolute;bottom:-1px;left:16px;right:16px;height:2px;background:var(--accent);border-radius:2px}
+.view{display:none;padding:20px;padding-bottom:40px}.view.active{display:block}
+.loading-overlay,.pin-overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px;transition:opacity .3s}.loading-overlay.hidden,.pin-overlay.hidden{opacity:0;pointer-events:none}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.loading-text{font-family:'Syne',sans-serif;font-size:14px;color:var(--text-muted)}
+.pin-box{width:min(92vw,360px);background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px}.pin-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);margin-bottom:8px}.pin-desc{font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:14px}.pin-help{font-size:12px;color:var(--text-mid);margin-top:10px;min-height:16px}.pin-box input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Mono',monospace;font-size:22px;letter-spacing:8px;padding:14px 16px;outline:none;text-align:center}.pin-box input:focus{border-color:var(--accent)}
+.date-row{display:flex;gap:6px;margin-bottom:20px;align-items:center}.date-chip{padding:8px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:100px;color:var(--text-mid);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}.date-chip.active{background:var(--accent);border-color:var(--accent);color:#0d0d0d;font-weight:600}input[type="date"].date-native{flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:100px;color:var(--text-mid);font-family:'DM Mono',monospace;font-size:12px;padding:8px 14px;outline:none;cursor:pointer;transition:border-color .2s;color-scheme:dark}input[type="date"].date-native.active{border-color:var(--accent);color:var(--accent)}input[type="date"].date-native:focus{border-color:var(--accent)}
+.section-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}.quick-cats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px}.cat-btn{padding:12px 10px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text-mid);font-family:'Syne',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .15s;text-align:left;display:flex;align-items:center;gap:8px}.cat-btn.selected,.cat-btn:active{background:var(--accent);border-color:var(--accent);color:#0d0d0d}.cat-btn.income-cat{border-color:#2a6b47}.cat-icon{font-size:18px}
+.input-group{margin-bottom:14px}.input-group label{display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}input[type="text"],input[type="number"]{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Mono',monospace;font-size:16px;padding:14px 16px;outline:none;transition:border-color .2s}input:focus{border-color:var(--accent)}input::placeholder{color:var(--text-muted)}
+.add-btn,.save-btn{width:100%;padding:16px;background:var(--accent);color:#0d0d0d;border:none;border-radius:var(--radius);font-family:'Syne',sans-serif;font-weight:800;font-size:16px;cursor:pointer;text-transform:uppercase;transition:opacity .15s,transform .1s;margin-top:6px}.add-btn:active,.save-btn:active{opacity:.8;transform:scale(.98)}.add-btn:disabled{opacity:.4;cursor:not-allowed}
+.filter-row{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.filter-row::-webkit-scrollbar{display:none}.filter-chip{flex-shrink:0;padding:6px 14px;background:var(--surface);border:1.5px solid var(--border);border-radius:100px;color:var(--text-mid);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .15s}.filter-chip.active{background:var(--accent);border-color:var(--accent);color:#0d0d0d;font-weight:500}
+.day-group{margin-bottom:20px}.day-header{display:flex;justify-content:space-between;align-items:center;padding:6px 0;margin-bottom:8px;border-bottom:1px solid var(--border)}.day-label{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text-mid)}.day-total{font-size:13px;color:var(--accent)}.entry-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px}.entry-icon{font-size:22px;width:36px;text-align:center;flex-shrink:0}.entry-info{flex:1;min-width:0}.entry-name{font-family:'Syne',sans-serif;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.entry-time{font-size:11px;color:var(--text-muted);margin-top:2px}.entry-amount{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;flex-shrink:0}.entry-amount.income{color:var(--income)}.entry-amount.expense{color:var(--text)}.entry-del{background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;padding:4px;flex-shrink:0}.entry-del:active{color:var(--danger)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-muted);font-size:13px}.empty-icon{font-size:40px;margin-bottom:12px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px}.stat-card.full{grid-column:1/-1}.stat-card-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}.stat-card-value{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--accent)}.stat-card-value.income{color:var(--income)}.stat-card-sub{font-size:11px;color:var(--text-muted);margin-top:4px}.cat-bar-list{display:flex;flex-direction:column;gap:10px}.cat-bar-header{display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px}.cat-bar-name{color:var(--text-mid)}.cat-bar-val{color:var(--text)}.cat-bar-track{height:4px;background:var(--border);border-radius:2px;overflow:hidden}.cat-bar-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .5s ease}
+.settings-group{margin-bottom:24px}.settings-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--text);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}.settings-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px}.action-btn{width:100%;padding:13px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}.action-btn:active{background:var(--accent);border-color:var(--accent);color:#0d0d0d}.action-btn.danger{color:var(--danger);border-color:var(--danger)}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#0d0d0d;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;padding:12px 24px;border-radius:100px;z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}.toast.show{transform:translateX(-50%) translateY(0)}.toast.error-toast{background:var(--danger);color:#fff}
+</style>
+</head>
+<body>
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-box">
+    <div class="pin-title">VÝDAVKY</div>
+    <div class="pin-desc">Zadaj PIN pred vstupom do appky.</div>
+    <input id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+    <button class="save-btn" onclick="unlockApp()">ODOMKNÚŤ</button>
+    <div class="pin-help" id="pinHelp"></div>
+  </div>
+</div>
+<div class="loading-overlay hidden" id="loadingOverlay"><div class="loading-spinner"></div><div class="loading-text">Načítavam zo Sheets...</div></div>
+<header>
+  <div class="header-top">
+    <div class="app-title">VÝDAVKY</div>
+    <div class="status-badge" onclick="loadEntries()"><div class="status-dot" id="statusDot"></div><span id="statusLabel">PIN</span></div>
+  </div>
+  <div class="header-date" id="headerDate"></div>
+  <div class="header-balance">
+    <div class="balance-item"><div class="balance-label">Dnes výdavky</div><div class="balance-value accent" id="todayTotal">0,00 €</div></div>
+    <div class="balance-item"><div class="balance-label">Stav účtu</div><div class="balance-value income" id="balanceTotal">0,00 €</div></div>
+    <div class="balance-item"><div class="balance-label">Záznamy</div><div class="balance-value" id="totalCount">0</div></div>
+  </div>
+</header>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('add',this)">+ Pridať</button>
+  <button class="tab" onclick="switchTab('history',this)">História</button>
+  <button class="tab" onclick="switchTab('stats',this)">Štatistiky</button>
+  <button class="tab" onclick="switchTab('settings',this)">⚙</button>
+</div>
+<div class="view active" id="view-add">
+  <div id="addForm">
+    <div class="section-label">Dátum</div>
+    <div class="date-row">
+      <button class="date-chip active" id="chip-today" onclick="selectDateChip('today')">Dnes</button>
+      <button class="date-chip" id="chip-yesterday" onclick="selectDateChip('yesterday')">Včera</button>
+      <button class="date-chip" id="chip-before" onclick="selectDateChip('before')">Predvčerom</button>
+      <input type="date" class="date-native" id="customDateInput" onchange="selectDateChip('custom')">
+    </div>
+    <div class="section-label">Kategória</div>
+    <div class="quick-cats">
+      <button class="cat-btn" onclick="selectCat(this,'Raňajky')"><span class="cat-icon">🍳</span> Raňajky</button>
+      <button class="cat-btn" onclick="selectCat(this,'Obed')"><span class="cat-icon">🍜</span> Obed</button>
+      <button class="cat-btn" onclick="selectCat(this,'Večera')"><span class="cat-icon">🍽️</span> Večera</button>
+      <button class="cat-btn" onclick="selectCat(this,'Jedlo')"><span class="cat-icon">🥗</span> Jedlo</button>
+      <button class="cat-btn" onclick="selectCat(this,'Nákupy')"><span class="cat-icon">🛒</span> Nákupy</button>
+      <button class="cat-btn" onclick="selectCat(this,'Pekáreň')"><span class="cat-icon">🥐</span> Pekáreň</button>
+      <button class="cat-btn" onclick="selectCat(this,'IDS / Autobus')"><span class="cat-icon">🚌</span> IDS</button>
+      <button class="cat-btn" onclick="selectCat(this,'Iné')"><span class="cat-icon">📦</span> Iné</button>
+      <button class="cat-btn income-cat" onclick="selectCat(this,'Príjem')"><span class="cat-icon">💚</span> Príjem</button>
+    </div>
+    <div class="input-group"><label>Popis (voliteľný)</label><input type="text" id="descInput" placeholder="napr. Kebab, výplata, dobitie..." autocomplete="off"></div>
+    <div class="input-group"><label>Suma (€)</label><input type="number" id="amountInput" placeholder="0,00" step="0.01" min="0" inputmode="decimal"></div>
+    <button class="add-btn" id="addBtn" onclick="addEntry()">PRIDAŤ ZÁZNAM</button>
+  </div>
+</div>
+<div class="view" id="view-history">
+  <div class="filter-row">
+    <button class="filter-chip active" onclick="setFilter('all',this)">Všetko</button>
+    <button class="filter-chip" onclick="setFilter('today',this)">Dnes</button>
+    <button class="filter-chip" onclick="setFilter('week',this)">Týždeň</button>
+    <button class="filter-chip" onclick="setFilter('month',this)">Mesiac</button>
+  </div>
+  <div id="historyList"></div>
+</div>
+<div class="view" id="view-stats">
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-card-label">Výdavky mesiac</div><div class="stat-card-value" id="statMonthExpense">0 €</div><div class="stat-card-sub" id="statMonthExpenseCount">0 záznamov</div></div>
+    <div class="stat-card"><div class="stat-card-label">Príjmy mesiac</div><div class="stat-card-value income" id="statMonthIncome">0 €</div><div class="stat-card-sub" id="statMonthIncomeCount">0 záznamov</div></div>
+    <div class="stat-card"><div class="stat-card-label">Bilancia mesiac</div><div class="stat-card-value" id="statMonthBalance">0 €</div><div class="stat-card-sub" id="statMonthBalanceSub">príjmy - výdavky</div></div>
+    <div class="stat-card"><div class="stat-card-label">Stav účtu celkom</div><div class="stat-card-value income" id="statAllBalance">0 €</div><div class="stat-card-sub" id="statAllCount">0 záznamov</div></div>
+    <div class="stat-card full"><div class="stat-card-label">Výdavky podľa kategórie (mesiac)</div><div class="cat-bar-list" id="catBars"></div></div>
+  </div>
+  <button class="action-btn" onclick="exportCSV()">📤 Exportovať CSV</button>
+</div>
+<div class="view" id="view-settings">
+  <div class="settings-group">
+    <div class="settings-title">☁️ Google Sheets</div>
+    <button class="action-btn" onclick="changePinPrompt()">🔐 Zmeniť PIN v tejto relácii</button>
+    <button class="action-btn" onclick="loadEntries()">🔄 Obnoviť dáta</button>
+    <button class="action-btn danger" onclick="lockApp()">🚪 Zamknúť appku</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let entries = [];
+const scriptUrl = 'https://script.google.com/macros/s/AKfycbyFSOSYTHkUF2Y6XUheFtimQkvPxHfPFhMiInDYSDGS8sSckqwHWnsFW2mGYvxH8ef7/exec';
+let appPin = sessionStorage.getItem('vydavky_pin') || '';
+let selectedCat = '';
+let selectedDate = localDateString(new Date());
+let currentFilter = 'all';
+const catIcons = {'Raňajky':'🍳','Obed':'🍜','Večera':'🍽️','Jedlo':'🥗','Nákupy':'🛒','Pekáreň':'🥐','IDS / Autobus':'🚌','Iné':'📦','Príjem':'💚','Lekáreň':'💊'};
+function pad(n){return String(n).padStart(2,'0')}
+function localDateString(date){return date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate())}
+function todayStr(){return localDateString(new Date())}
+function monthStr(){return todayStr().slice(0,7)}
+function dateOffset(days){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-days);return localDateString(d)}
+function icon(cat){return catIcons[cat]||'💸'}
+function eur(n){return Number(n||0).toFixed(2).replace('.',',')+' €'}
+function isIncome(e){return (e.cat||'')==='Príjem'}
+function signedEur(entry){const amount=eur(entry.amount);return isIncome(entry)?'+ '+amount:'- '+amount}
+function fmtDate(d){const today=todayStr();const yd=dateOffset(1);if(d===today)return 'Dnes';if(d===yd)return 'Včera';const x=new Date(d+'T12:00:00');return x.toLocaleDateString('sk-SK',{weekday:'short',day:'numeric',month:'short'})}
+function escapeHtml(str){return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
+function setStatus(state,label){const dot=document.getElementById('statusDot');const lbl=document.getElementById('statusLabel');dot.className='status-dot'+(state?' '+state:'');lbl.textContent=label}
+function showLoading(){document.getElementById('loadingOverlay').classList.remove('hidden')}
+function hideLoading(){document.getElementById('loadingOverlay').classList.add('hidden')}
+function showToast(msg,isError=false){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(isError?' error-toast':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+function selectDateChip(which){['today','yesterday','before'].forEach(id=>{const el=document.getElementById('chip-'+id);if(el)el.classList.remove('active')});const custom=document.getElementById('customDateInput');custom.classList.remove('active');if(which==='today'){selectedDate=dateOffset(0);document.getElementById('chip-today').classList.add('active')}else if(which==='yesterday'){selectedDate=dateOffset(1);document.getElementById('chip-yesterday').classList.add('active')}else if(which==='before'){selectedDate=dateOffset(2);document.getElementById('chip-before').classList.add('active')}else if(which==='custom'){const val=custom.value;if(val){selectedDate=val;custom.classList.add('active')}}}
+function selectCat(btn,cat){document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');selectedCat=cat;document.getElementById('descInput').placeholder=cat==='Príjem'?'napr. Vklad, dobitie, príjem...':cat+' – detail...'}
+async function parseJsonResponse(res){const text=await res.text();let data;try{data=JSON.parse(text)}catch(err){throw new Error('Server nevrátil JSON')}if(!res.ok)throw new Error(data.message||('HTTP '+res.status));if(data.status!=='ok')throw new Error(data.message||'Chyba');return data}
+async function apiGet(){const url=scriptUrl+'?pin='+encodeURIComponent(appPin)+'&t='+Date.now();const res=await fetch(url,{method:'GET',cache:'no-store'});const data=await parseJsonResponse(res);return Array.isArray(data.entries)?data.entries:[]}
+async function apiPost(body){const res=await fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...body,pin:appPin})});return await parseJsonResponse(res)}
+async function unlockApp(){const pin=document.getElementById('pinInput').value.trim();if(pin.length<4){document.getElementById('pinHelp').textContent='Zadaj 4-ciferný PIN';return}appPin=pin;sessionStorage.setItem('vydavky_pin',pin);document.getElementById('pinHelp').textContent='';try{await loadEntries();document.getElementById('pinOverlay').classList.add('hidden')}catch(err){document.getElementById('pinHelp').textContent='Zlý PIN';sessionStorage.removeItem('vydavky_pin');appPin=''}}
+function lockApp(){sessionStorage.removeItem('vydavky_pin');appPin='';document.getElementById('pinInput').value='';document.getElementById('pinOverlay').classList.remove('hidden');setStatus('error','PIN')}
+function changePinPrompt(){sessionStorage.removeItem('vydavky_pin');appPin='';document.getElementById('pinInput').value='';document.getElementById('pinOverlay').classList.remove('hidden');document.getElementById('pinHelp').textContent='Zadaj PIN znova';setStatus('error','PIN')}
+async function loadEntries(){if(!appPin){document.getElementById('pinOverlay').classList.remove('hidden');setStatus('error','PIN');throw new Error('PIN required')}setStatus('loading','Načítavam...');showLoading();try{entries=await apiGet();hideLoading();setStatus('ok','Aktuálne');updateHeader();renderHistory();renderStats();return true}catch(err){hideLoading();setStatus('error','Chyba');showToast('⚠️ Nepodarilo sa načítať',true);console.error(err);throw err}}
+async function addEntry(){const desc=document.getElementById('descInput').value.trim();const amount=parseFloat(document.getElementById('amountInput').value);if(!selectedCat&&!desc){showToast('⚠️ Vyber kategóriu alebo zadaj popis',true);return}if(!amount||amount<=0){showToast('⚠️ Zadaj sumu',true);return}const btn=document.getElementById('addBtn');btn.disabled=true;btn.textContent='Ukladám...';setStatus('loading','Ukladám...');const now=new Date();const entry={id:String(Date.now()),cat:selectedCat||'Iné',name:desc||selectedCat||'Iné',amount:amount,date:selectedDate,time:pad(now.getHours())+':'+pad(now.getMinutes())};try{await apiPost({action:'add',entry});entries.unshift(entry);updateHeader();renderHistory();renderStats();document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));selectedCat='';document.getElementById('descInput').value='';document.getElementById('amountInput').value='';document.getElementById('descInput').placeholder='napr. Kebab, výplata, dobitie...';document.getElementById('customDateInput').value='';selectDateChip('today');setStatus('ok','Uložené ✓');showToast(entry.cat==='Príjem'?'✓ Pridaný príjem':'✓ Pridaný výdavok')}catch(err){setStatus('error','Chyba');showToast('⚠️ Nepodarilo sa uložiť',true);console.error(err)}finally{btn.disabled=false;btn.textContent='PRIDAŤ ZÁZNAM'}}
+async function deleteEntry(id){if(!confirm('Zmazať tento záznam?'))return;setStatus('loading','Mazám...');try{await apiPost({action:'delete',id:id});entries=entries.filter(e=>e.id!==id);updateHeader();renderHistory();renderStats();setStatus('ok','Aktuálne');showToast('Zmazané')}catch(err){setStatus('error','Chyba');showToast('⚠️ Nepodarilo sa zmazať',true);console.error(err)}}
+function updateHeader(){const today=todayStr();const expensesToday=entries.filter(e=>e.date===today&&!isIncome(e)).reduce((s,e)=>s+Number(e.amount||0),0);const incomeAll=entries.filter(isIncome).reduce((s,e)=>s+Number(e.amount||0),0);const expenseAll=entries.filter(e=>!isIncome(e)).reduce((s,e)=>s+Number(e.amount||0),0);const balance=incomeAll-expenseAll;document.getElementById('todayTotal').textContent=eur(expensesToday);document.getElementById('balanceTotal').textContent=(balance>=0?'+ ':'- ')+eur(Math.abs(balance));document.getElementById('balanceTotal').className='balance-value '+(balance>=0?'income':'');document.getElementById('totalCount').textContent=entries.length;document.getElementById('headerDate').textContent=new Date().toLocaleDateString('sk-SK',{weekday:'long',day:'numeric',month:'long'})}
+function setFilter(f,btn){currentFilter=f;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));if(btn)btn.classList.add('active');renderHistory()}
+function filtered(){const today=todayStr();const mo=monthStr();const wa=new Date();wa.setHours(12,0,0,0);wa.setDate(wa.getDate()-7);const waStr=localDateString(wa);switch(currentFilter){case 'today':return entries.filter(e=>e.date===today);case 'week':return entries.filter(e=>e.date>=waStr);case 'month':return entries.filter(e=>String(e.date||'').startsWith(mo));default:return entries}}
+function renderHistory(){const list=document.getElementById('historyList');const f=filtered();if(!f.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div>Žiadne záznamy</div>';return}const groups={};f.forEach(e=>{if(!groups[e.date])groups[e.date]=[];groups[e.date].push(e)});let html='';Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(date=>{const g=groups[date];const dayIncome=g.filter(isIncome).reduce((s,e)=>s+Number(e.amount||0),0);const dayExpense=g.filter(e=>!isIncome(e)).reduce((s,e)=>s+Number(e.amount||0),0);const dayBalance=dayIncome-dayExpense;html+=`<div class="day-group"><div class="day-header"><span class="day-label">${fmtDate(date)}</span><span class="day-total">${dayBalance>=0?'+ ':'- '}${eur(Math.abs(dayBalance))}</span></div>`;g.forEach(e=>{html+=`<div class="entry-card"><div class="entry-icon">${icon(e.cat)}</div><div class="entry-info"><div class="entry-name">${escapeHtml(e.name||'')}</div><div class="entry-time">${escapeHtml(e.time||'')} · ${escapeHtml(e.cat||'')}</div></div><div class="entry-amount ${isIncome(e)?'income':'expense'}">${signedEur(e)}</div><button class="entry-del" onclick="deleteEntry('${String(e.id).replace(/'/g,"\\'")}')">✕</button></div>`});html+='</div>'});list.innerHTML=html}
+function renderStats(){const mo=monthStr();const me=entries.filter(e=>String(e.date||'').startsWith(mo));const monthIncomeEntries=me.filter(isIncome);const monthExpenseEntries=me.filter(e=>!isIncome(e));const monthIncome=monthIncomeEntries.reduce((s,e)=>s+Number(e.amount||0),0);const monthExpense=monthExpenseEntries.reduce((s,e)=>s+Number(e.amount||0),0);const monthBalance=monthIncome-monthExpense;const allIncome=entries.filter(isIncome).reduce((s,e)=>s+Number(e.amount||0),0);const allExpense=entries.filter(e=>!isIncome(e)).reduce((s,e)=>s+Number(e.amount||0),0);const allBalance=allIncome-allExpense;document.getElementById('statMonthExpense').textContent=eur(monthExpense);document.getElementById('statMonthExpenseCount').textContent=monthExpenseEntries.length+' záznamov';document.getElementById('statMonthIncome').textContent=eur(monthIncome);document.getElementById('statMonthIncomeCount').textContent=monthIncomeEntries.length+' záznamov';document.getElementById('statMonthBalance').textContent=(monthBalance>=0?'+ ':'- ')+eur(Math.abs(monthBalance));document.getElementById('statAllBalance').textContent=(allBalance>=0?'+ ':'- ')+eur(Math.abs(allBalance));document.getElementById('statAllCount').textContent=entries.length+' záznamov';const ct={};monthExpenseEntries.forEach(e=>{ct[e.cat]=(ct[e.cat]||0)+Number(e.amount||0)});const sorted=Object.entries(ct).sort((a,b)=>b[1]-a[1]);const maxV=sorted[0]?sorted[0][1]:1;document.getElementById('catBars').innerHTML=sorted.length===0?'<div style="color:var(--text-muted);font-size:13px">Žiadne dáta</div>':sorted.map(([cat,val])=>`<div><div class="cat-bar-header"><span class="cat-bar-name">${icon(cat)} ${escapeHtml(cat)}</span><span class="cat-bar-val">${eur(val)}</span></div><div class="cat-bar-track"><div class="cat-bar-fill" style="width:${(val/maxV*100).toFixed(1)}%"></div></div></div>`).join('')}
+function exportCSV(){if(!entries.length){showToast('Žiadne dáta');return}const rows=entries.map(e=>`${e.date};${e.time};${e.cat};"${String(e.name||'').replace(/"/g,'""')}";${Number(e.amount||0).toFixed(2)}`).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+'Datum;Cas;Kategoria;Popis;Suma\n'+rows],{type:'text/csv;charset=utf-8;'}));a.download=`vydavky_${todayStr()}.csv`;a.click()}
+function switchTab(name,btn){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('view-'+name).classList.add('active');if(btn){btn.classList.add('active')}else{document.querySelectorAll('.tab').forEach(t=>{const oc=t.getAttribute('onclick')||'';if(oc.includes("'"+name+"'"))t.classList.add('active')})}if(name==='history')renderHistory();if(name==='stats')renderStats()}
+document.getElementById('headerDate').textContent=new Date().toLocaleDateString('sk-SK',{weekday:'long',day:'numeric',month:'long'});document.getElementById('customDateInput').value=selectedDate;document.getElementById('pinInput').addEventListener('keydown',e=>{if(e.key==='Enter')unlockApp()});if(appPin){unlockApp()}else{document.getElementById('pinOverlay').classList.remove('hidden');setStatus('error','PIN')}
+</script>
+</body>
+</html>
